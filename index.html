@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Questionnaire AHP</title>
+
+<style>
+  :root{
+    --bg: #fbfbfc;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --shadow: 0 10px 24px rgba(0,0,0,.06);
+
+    /* Couleurs douces (pas flashy) */
+    --env: #2f7d5a;      --env-bg: #eef7f2;
+    --eco: #b98500;      --eco-bg: #fff6e1;
+    --soc: #b23a48;      --soc-bg: #fdeff1;
+    --pol: #2f5aa8;      --pol-bg: #edf3ff;
+    --neu: #64748b;      --neu-bg: #f3f4f6;
+  }
+
+  body{
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* ✅ Centre toute la page */
+  .container{
+    max-width: 980px;
+    margin: 36px auto;
+    padding: 0 16px;
+  }
+
+  h1{ margin: 0 0 6px 0; font-size: 28px; }
+  p{ margin: 0 0 16px 0; color: var(--muted); }
+
+  .meta{
+    margin: 18px 0 24px 0;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+  }
+  .meta label{ font-weight: 800; display:block; margin-bottom:8px; }
+  .meta input{
+    width: min(420px, 100%);
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    outline: none;
+  }
+  .meta input:focus{
+    border-color: #c7d2fe;
+    box-shadow: 0 0 0 4px rgba(99,102,241,.12);
+  }
+  .note{ font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  /* Sections */
+  .section{
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    margin: 18px 0;
+    overflow: hidden;
+  }
+  .sectionHeader{
+    padding: 14px 16px;
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--neu-bg);
+    border-left: 7px solid var(--neu);
+  }
+  .sectionTitle{ font-size: 16px; font-weight: 900; margin: 0; }
+  .sectionHint{ font-size: 12px; color: var(--muted); margin: 0; }
+  .sectionBody{ padding: 8px 16px 12px 16px; }
+
+  /* Questions */
+  .question{
+    padding: 14px 0;
+    border-bottom: 1px dashed #e9e9ee;
+  }
+  .question:last-child{ border-bottom: none; }
+
+  /* ✅ Grille alignée (évite l'effet "aplati") */
+  .row{
+    display: grid;
+    grid-template-columns: minmax(170px, 260px) 1fr minmax(170px, 260px);
+    align-items: center;
+    gap: 14px;
+  }
+
+  /* Mobile */
+  @media (max-width: 860px){
+    .row{
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+  }
+
+  .crit{
+    font-weight: 900;
+    line-height: 1.2;
+  }
+
+  /* ✅ Scale + radios plus clean */
+  .scale{
+    display:flex;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #fbfbfd;
+    justify-content: center;
+  }
+
+  .scale label{
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
+    cursor: pointer;
+    min-width: 26px;
+    user-select: none;
+    color: #374151;
+    font-weight: 700;
+  }
+
+  .scale input{
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: 2px solid #cbd5e1;
+    background: white;
+    margin: 0 0 6px 0;
+    display: grid;
+    place-items: center;
+  }
+
+  .scale input::before{
+    content:"";
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    transform: scale(0);
+    transition: transform .12s ease-in-out;
+    background: #111827;
+  }
+  .scale input:checked::before{ transform: scale(1); }
+
+  /* ✅ Couleur par question (pas par section) */
+  .question.env .crit{ color: var(--env); }
+  .question.eco .crit{ color: var(--eco); }
+  .question.soc .crit{ color: var(--soc); }
+  .question.pol .crit{ color: var(--pol); }
+
+  .question.env .scale{ background: var(--env-bg); }
+  .question.eco .scale{ background: var(--eco-bg); }
+  .question.soc .scale{ background: var(--soc-bg); }
+  .question.pol .scale{ background: var(--pol-bg); }
+
+  .question.env .scale input:checked::before{ background: var(--env); }
+  .question.eco .scale input:checked::before{ background: var(--eco); }
+  .question.soc .scale input:checked::before{ background: var(--soc); }
+  .question.pol .scale input:checked::before{ background: var(--pol); }
+
+  /* Bouton envoyer */
+  button{
+    margin-top: 18px;
+    padding: 11px 16px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #111827;
+    color: white;
+  }
+  button:hover{ filter: brightness(1.05); }
+  button:disabled{ opacity: .6; cursor: not-allowed; }
+
+  #status{ margin-top: 10px; font-size: 13px; font-weight: 900; }
+
+/* === 1) SCALE NEUTRE (plus de couleurs) === */
+.scale{
+  background: #ffffff !important;   /* neutre */
+  border: 1px solid var(--border) !important;
+}
+
+/* on neutralise aussi la couleur du point */
+.scale input:checked::before{
+  background: #111827 !important;
+}
+
+/* === 2) COULEURS UNIQUEMENT SUR LES TEXTES DES CRITÈRES === */
+/* On utilise data-crit pour attribuer la couleur au texte, pas à la question */
+.crit[data-crit="Environnemental"]{ color: var(--env) !important; }
+.crit[data-crit="Économique"]{ color: var(--eco) !important; }
+.crit[data-crit="Economique"]{ color: var(--eco) !important; } /* au cas où sans accent */
+.crit[data-crit="Social"]{ color: var(--soc) !important; }
+.crit[data-crit="Politique"]{ color: var(--pol) !important; }
+
+/* === 3) BONUS : GRADIENT GRIS SUR LES "BOUTONS" (certain et stable) === */
+/* On donne une couleur de bordure différente selon la position */
+.scale label:nth-child(1)  input{ border-color:#111827; } /* 9 (foncé) */
+.scale label:nth-child(2)  input{ border-color:#1f2937; } /* 7 */
+.scale label:nth-child(3)  input{ border-color:#374151; } /* 5 */
+.scale label:nth-child(4)  input{ border-color:#4b5563; } /* 3 */
+.scale label:nth-child(5)  input{ border-color:#6b7280; } /* 1 */
+.scale label:nth-child(6)  input{ border-color:#4b5563; } /* 3 */
+.scale label:nth-child(7)  input{ border-color:#374151; } /* 5 */
+.scale label:nth-child(8)  input{ border-color:#1f2937; } /* 7 */
+.scale label:nth-child(9)  input{ border-color:#111827; } /* 9 */
+
+/* Optionnel : on grise un peu les chiffres aussi (plus foncé vers 9) */
+.scale label:nth-child(1),
+.scale label:nth-child(9){ color:#111827; }
+.scale label:nth-child(2),
+.scale label:nth-child(8){ color:#1f2937; }
+.scale label:nth-child(3),
+.scale label:nth-child(7){ color:#374151; }
+.scale label:nth-child(4),
+.scale label:nth-child(6){ color:#4b5563; }
+.scale label:nth-child(5){ color:#6b7280; }
+
+/* ============================= */
+/* SOUS-CRITÈRES ENVIRONNEMENTAL */
+/* ============================= */
+
+.section.env{
+  border-radius: 16px;
+  overflow: hidden; /* 🔥 SUPPRIME la barre parasite */
+  border: 1px solid #d7ebe1; /* au lieu de border-left */
+}
+
+/* Header */
+.section.env .sectionHeader{
+  background: var(--env-bg);
+  padding: 18px 22px;
+}
+
+/* Titre */
+.section.env .sectionTitle{
+  color: var(--env);
+  font-weight: 900;
+}
+
+/* Sous-titre */
+.section.env .sectionHint{
+  color: var(--env);
+  font-weight: 400; /* ✅ plus en gras */
+  opacity: 0.85;
+}
+
+/* Texte des critères */
+.section.env .crit{
+  color: var(--env);
+  font-weight: 700;
+}
+
+/* Fond des curseurs */
+.section.env .scale{
+  background: var(--env-bg);
+  border: 1px solid #cfe6d8;
+}
+
+/* Point sélectionné neutre */
+.section.env .scale input:checked::before{
+  background: #111827;
+}
+
+
+/* ============================= */
+/* SOUS-CRITÈRES ÉCONOMIQUE */
+/* ============================= */
+
+.section.eco{
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #f1e0b8;
+}
+
+/* Header */
+.section.eco .sectionHeader{
+  background: var(--eco-bg);
+  padding: 18px 22px;
+}
+
+/* Titre */
+.section.eco .sectionTitle{
+  color: var(--eco);
+  font-weight: 900;
+}
+
+/* Sous-titre */
+.section.eco .sectionHint{
+  color: var(--eco);
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* Texte des critères */
+.section.eco .crit{
+  color: var(--eco);
+  font-weight: 700;
+}
+
+/* Fond des curseurs */
+.section.eco .scale{
+  background: var(--eco-bg);
+  border: 1px solid #ecd8a8;
+}
+
+/* Point sélectionné neutre */
+.section.eco .scale input:checked::before{
+  background: #111827;
+}
+
+
+
+/* ============================= */
+/* SOUS-CRITÈRES SOCIAL */
+/* ============================= */
+
+.section.soc{
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #f2c7cd;
+}
+
+/* Header */
+.section.soc .sectionHeader{
+  background: var(--soc-bg);
+  padding: 18px 22px;
+}
+
+/* Titre */
+.section.soc .sectionTitle{
+  color: var(--soc);
+  font-weight: 900;
+}
+
+/* Sous-titre */
+.section.soc .sectionHint{
+  color: var(--soc);
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* Texte des critères */
+.section.soc .crit{
+  color: var(--soc);
+  font-weight: 700;
+}
+
+/* Fond des curseurs */
+.section.soc .scale{
+  background: var(--soc-bg);
+  border: 1px solid #efb9c1;
+}
+
+/* Point sélectionné neutre */
+.section.soc .scale input:checked::before{
+  background: #111827;
+}
+
+
+/* ============================= */
+/* SOUS-CRITÈRES POLITIQUE */
+/* ============================= */
+
+.section.pol{
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #bfd8f2;
+}
+
+/* Header */
+.section.pol .sectionHeader{
+  background: var(--pol-bg);
+  padding: 18px 22px;
+}
+
+/* Titre */
+.section.pol .sectionTitle{
+  color: var(--pol);
+  font-weight: 900;
+}
+
+/* Sous-titre */
+.section.pol .sectionHint{
+  color: var(--pol);
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* Texte des critères */
+.section.pol .crit{
+  color: var(--pol);
+  font-weight: 700;
+}
+
+/* Fond des curseurs */
+.section.pol .scale{
+  background: var(--pol-bg);
+  border: 1px solid #b1cfea;
+}
+
+/* Point sélectionné neutre */
+.section.pol .scale input:checked::before{
+  background: #111827;
+}
+
+
+
+</style>
+
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+<h1>Questionnaire AHP - Ministères Transition Ecologique Aménagement du territoire Transports Ville et logement</h1>
+<p>Choisissez l’importance relative entre le critère de gauche (A) et celui de droite (B).</p>
+
+<div class="meta">
+  <label for="respondantId">Identifiant répondant (obligatoire)</label>
+  <input id="respondantId" type="text" placeholder="Ex: R01, Nom_Prénom, etc." />
+  <div class="note">
+    Cet identifiant sert à distinguer les réponses dans le fichier central.
+  </div>
+</div>
+
+<h2>Critères</h2>
+
+<div class="section">
+  <div class="sectionHeader">
+    <div>
+      <div class="sectionTitle">Critères</div>
+      <div class="sectionHint">Comparaisons par paires</div>
+    </div>
+  </div>
+
+  <div class="sectionBody">
+
+    <!-- C_Env_vs_Eco -->
+    <div class="question env" data-code="C_Env_vs_Eco" data-a="Environnemental" data-b="Économique">
+      <div class="row">
+        <div class="crit" data-crit="Environnemental">Environnemental</div>
+        <div class="scale">
+          <label><input type="radio" name="C_Env_vs_Eco" value="9">9</label>
+          <label><input type="radio" name="C_Env_vs_Eco" value="7">7</label>
+          <label><input type="radio" name="C_Env_vs_Eco" value="5">5</label>
+          <label><input type="radio" name="C_Env_vs_Eco" value="3">3</label>
+          <label><input type="radio" name="C_Env_vs_Eco" value="1">1</label>
+          <label><input type="radio" name="C_Env_vs_Eco" value="1/3">3</label>
+          <label><input type="radio" name="C_Env_vs_Eco" value="1/5">5</label>
+          <label><input type="radio" name="C_Env_vs_Eco" value="1/7">7</label>
+          <label><input type="radio" name="C_Env_vs_Eco" value="1/9">9</label>
+        </div>
+        <div class="crit" data-crit="Économique">Économique</div>
+      </div>
+    </div>
+
+    <!-- C_Env_vs_Soc -->
+    <div class="question env" data-code="C_Env_vs_Soc" data-a="Environnemental" data-b="Social">
+      <div class="row">
+        <div class="crit" data-crit="Environnemental">Environnemental</div>
+        <div class="scale">
+          <label><input type="radio" name="C_Env_vs_Soc" value="9">9</label>
+          <label><input type="radio" name="C_Env_vs_Soc" value="7">7</label>
+          <label><input type="radio" name="C_Env_vs_Soc" value="5">5</label>
+          <label><input type="radio" name="C_Env_vs_Soc" value="3">3</label>
+          <label><input type="radio" name="C_Env_vs_Soc" value="1">1</label>
+          <label><input type="radio" name="C_Env_vs_Soc" value="1/3">3</label>
+          <label><input type="radio" name="C_Env_vs_Soc" value="1/5">5</label>
+          <label><input type="radio" name="C_Env_vs_Soc" value="1/7">7</label>
+          <label><input type="radio" name="C_Env_vs_Soc" value="1/9">9</label>
+        </div>
+        <div class="crit" data-crit="Social">Social</div>
+      </div>
+    </div>
+
+    <!-- C_Env_vs_Pol -->
+    <div class="question env" data-code="C_Env_vs_Pol" data-a="Environnemental" data-b="Politique">
+      <div class="row">
+        <div class="crit" data-crit="Environnemental">Environnemental</div>
+        <div class="scale">
+          <label><input type="radio" name="C_Env_vs_Pol" value="9">9</label>
+          <label><input type="radio" name="C_Env_vs_Pol" value="7">7</label>
+          <label><input type="radio" name="C_Env_vs_Pol" value="5">5</label>
+          <label><input type="radio" name="C_Env_vs_Pol" value="3">3</label>
+          <label><input type="radio" name="C_Env_vs_Pol" value="1">1</label>
+          <label><input type="radio" name="C_Env_vs_Pol" value="1/3">3</label>
+          <label><input type="radio" name="C_Env_vs_Pol" value="1/5">5</label>
+          <label><input type="radio" name="C_Env_vs_Pol" value="1/7">7</label>
+          <label><input type="radio" name="C_Env_vs_Pol" value="1/9">9</label>
+        </div>
+        <div class="crit" data-crit="Politique">Politique</div>
+      </div>
+    </div>
+
+    <!-- C_Eco_vs_Soc -->
+    <div class="question eco" data-code="C_Eco_vs_Soc" data-a="Économique" data-b="Social">
+      <div class="row">
+        <div class="crit" data-crit="Économique">Économique</div>
+        <div class="scale">
+          <label><input type="radio" name="C_Eco_vs_Soc" value="9">9</label>
+          <label><input type="radio" name="C_Eco_vs_Soc" value="7">7</label>
+          <label><input type="radio" name="C_Eco_vs_Soc" value="5">5</label>
+          <label><input type="radio" name="C_Eco_vs_Soc" value="3">3</label>
+          <label><input type="radio" name="C_Eco_vs_Soc" value="1">1</label>
+          <label><input type="radio" name="C_Eco_vs_Soc" value="1/3">3</label>
+          <label><input type="radio" name="C_Eco_vs_Soc" value="1/5">5</label>
+          <label><input type="radio" name="C_Eco_vs_Soc" value="1/7">7</label>
+          <label><input type="radio" name="C_Eco_vs_Soc" value="1/9">9</label>
+        </div>
+        <div class="crit" data-crit="Social">Social</div>
+      </div>
+    </div>
+
+    <!-- C_Eco_vs_Pol -->
+    <div class="question eco" data-code="C_Eco_vs_Pol" data-a="Économique" data-b="Politique">
+      <div class="row">
+        <div class="crit" data-crit="Économique">Économique</div>
+        <div class="scale">
+          <label><input type="radio" name="C_Eco_vs_Pol" value="9">9</label>
+          <label><input type="radio" name="C_Eco_vs_Pol" value="7">7</label>
+          <label><input type="radio" name="C_Eco_vs_Pol" value="5">5</label>
+          <label><input type="radio" name="C_Eco_vs_Pol" value="3">3</label>
+          <label><input type="radio" name="C_Eco_vs_Pol" value="1">1</label>
+          <label><input type="radio" name="C_Eco_vs_Pol" value="1/3">3</label>
+          <label><input type="radio" name="C_Eco_vs_Pol" value="1/5">5</label>
+          <label><input type="radio" name="C_Eco_vs_Pol" value="1/7">7</label>
+          <label><input type="radio" name="C_Eco_vs_Pol" value="1/9">9</label>
+        </div>
+        <div class="crit" data-crit="Politique">Politique</div>
+      </div>
+    </div>
+
+    <!-- C_Soc_vs_Pol -->
+    <div class="question soc" data-code="C_Soc_vs_Pol" data-a="Social" data-b="Politique">
+      <div class="row">
+        <div class="crit" data-crit="Social">Social</div>
+        <div class="scale">
+          <label><input type="radio" name="C_Soc_vs_Pol" value="9">9</label>
+          <label><input type="radio" name="C_Soc_vs_Pol" value="7">7</label>
+          <label><input type="radio" name="C_Soc_vs_Pol" value="5">5</label>
+          <label><input type="radio" name="C_Soc_vs_Pol" value="3">3</label>
+          <label><input type="radio" name="C_Soc_vs_Pol" value="1">1</label>
+          <label><input type="radio" name="C_Soc_vs_Pol" value="1/3">3</label>
+          <label><input type="radio" name="C_Soc_vs_Pol" value="1/5">5</label>
+          <label><input type="radio" name="C_Soc_vs_Pol" value="1/7">7</label>
+          <label><input type="radio" name="C_Soc_vs_Pol" value="1/9">9</label>
+        </div>
+        <div class="crit" data-crit="Politique">Politique</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+<h2>Sous-critères</h2>
+
+<div class="section env">
+  <div class="sectionHeader">
+    <div>
+      <div class="sectionTitle">Environnemental</div>
+      <div class="sectionHint">Comparaisons par paires</div>
+    </div>
+  </div>
+
+  <div class="sectionBody">
+
+    <!-- EcoSys vs Energie -->
+    <div class="question env" data-code="Env_EcoSys_vs_Energie"
+         data-a="Impact sur les écosystèmes"
+         data-b="Consommation d’énergie">
+      <div class="row">
+        <div class="crit">Impact sur les écosystèmes</div>
+        <div class="scale">
+          <label><input type="radio" name="Env_EcoSys_vs_Energie" value="9">9</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Energie" value="7">7</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Energie" value="5">5</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Energie" value="3">3</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Energie" value="1">1</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Energie" value="1/3">3</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Energie" value="1/5">5</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Energie" value="1/7">7</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Energie" value="1/9">9</label>
+        </div>
+        <div class="crit">Consommation d’énergie</div>
+      </div>
+    </div>
+
+    <!-- EcoSys vs GES -->
+    <div class="question env" data-code="Env_EcoSys_vs_GES"
+         data-a="Impact sur les écosystèmes"
+         data-b="Émissions de gaz à effet de serre">
+      <div class="row">
+        <div class="crit">Impact sur les écosystèmes</div>
+        <div class="scale">
+          <label><input type="radio" name="Env_EcoSys_vs_GES" value="9">9</label>
+          <label><input type="radio" name="Env_EcoSys_vs_GES" value="7">7</label>
+          <label><input type="radio" name="Env_EcoSys_vs_GES" value="5">5</label>
+          <label><input type="radio" name="Env_EcoSys_vs_GES" value="3">3</label>
+          <label><input type="radio" name="Env_EcoSys_vs_GES" value="1">1</label>
+          <label><input type="radio" name="Env_EcoSys_vs_GES" value="1/3">3</label>
+          <label><input type="radio" name="Env_EcoSys_vs_GES" value="1/5">5</label>
+          <label><input type="radio" name="Env_EcoSys_vs_GES" value="1/7">7</label>
+          <label><input type="radio" name="Env_EcoSys_vs_GES" value="1/9">9</label>
+        </div>
+        <div class="crit">Émissions de gaz à effet de serre</div>
+      </div>
+    </div>
+
+    <!-- EcoSys vs Résilience -->
+    <div class="question env" data-code="Env_EcoSys_vs_Resilience"
+         data-a="Impact sur les écosystèmes"
+         data-b="Résilience au changement climatique">
+      <div class="row">
+        <div class="crit">Impact sur les écosystèmes</div>
+        <div class="scale">
+          <label><input type="radio" name="Env_EcoSys_vs_Resilience" value="9">9</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Resilience" value="7">7</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Resilience" value="5">5</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Resilience" value="3">3</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Resilience" value="1">1</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Resilience" value="1/3">3</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Resilience" value="1/5">5</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Resilience" value="1/7">7</label>
+          <label><input type="radio" name="Env_EcoSys_vs_Resilience" value="1/9">9</label>
+        </div>
+        <div class="crit">Résilience au changement climatique</div>
+      </div>
+    </div>
+
+    <!-- Energie vs GES -->
+    <div class="question env" data-code="Env_Energie_vs_GES"
+         data-a="Consommation d’énergie"
+         data-b="Émissions de gaz à effet de serre">
+      <div class="row">
+        <div class="crit">Consommation d’énergie</div>
+        <div class="scale">
+          <label><input type="radio" name="Env_Energie_vs_GES" value="9">9</label>
+          <label><input type="radio" name="Env_Energie_vs_GES" value="7">7</label>
+          <label><input type="radio" name="Env_Energie_vs_GES" value="5">5</label>
+          <label><input type="radio" name="Env_Energie_vs_GES" value="3">3</label>
+          <label><input type="radio" name="Env_Energie_vs_GES" value="1">1</label>
+          <label><input type="radio" name="Env_Energie_vs_GES" value="1/3">3</label>
+          <label><input type="radio" name="Env_Energie_vs_GES" value="1/5">5</label>
+          <label><input type="radio" name="Env_Energie_vs_GES" value="1/7">7</label>
+          <label><input type="radio" name="Env_Energie_vs_GES" value="1/9">9</label>
+        </div>
+        <div class="crit">Émissions de gaz à effet de serre</div>
+      </div>
+    </div>
+
+    <!-- Energie vs Résilience -->
+    <div class="question env" data-code="Env_Energie_vs_Resilience"
+         data-a="Consommation d’énergie"
+         data-b="Résilience au changement climatique">
+      <div class="row">
+        <div class="crit">Consommation d’énergie</div>
+        <div class="scale">
+          <label><input type="radio" name="Env_Energie_vs_Resilience" value="9">9</label>
+          <label><input type="radio" name="Env_Energie_vs_Resilience" value="7">7</label>
+          <label><input type="radio" name="Env_Energie_vs_Resilience" value="5">5</label>
+          <label><input type="radio" name="Env_Energie_vs_Resilience" value="3">3</label>
+          <label><input type="radio" name="Env_Energie_vs_Resilience" value="1">1</label>
+          <label><input type="radio" name="Env_Energie_vs_Resilience" value="1/3">3</label>
+          <label><input type="radio" name="Env_Energie_vs_Resilience" value="1/5">5</label>
+          <label><input type="radio" name="Env_Energie_vs_Resilience" value="1/7">7</label>
+          <label><input type="radio" name="Env_Energie_vs_Resilience" value="1/9">9</label>
+        </div>
+        <div class="crit">Résilience au changement climatique</div>
+      </div>
+    </div>
+
+    <!-- GES vs Résilience -->
+    <div class="question env" data-code="Env_GES_vs_Resilience"
+         data-a="Émissions de gaz à effet de serre"
+         data-b="Résilience au changement climatique">
+      <div class="row">
+        <div class="crit">Émissions de gaz à effet de serre</div>
+        <div class="scale">
+          <label><input type="radio" name="Env_GES_vs_Resilience" value="9">9</label>
+          <label><input type="radio" name="Env_GES_vs_Resilience" value="7">7</label>
+          <label><input type="radio" name="Env_GES_vs_Resilience" value="5">5</label>
+          <label><input type="radio" name="Env_GES_vs_Resilience" value="3">3</label>
+          <label><input type="radio" name="Env_GES_vs_Resilience" value="1">1</label>
+          <label><input type="radio" name="Env_GES_vs_Resilience" value="1/3">3</label>
+          <label><input type="radio" name="Env_GES_vs_Resilience" value="1/5">5</label>
+          <label><input type="radio" name="Env_GES_vs_Resilience" value="1/7">7</label>
+          <label><input type="radio" name="Env_GES_vs_Resilience" value="1/9">9</label>
+        </div>
+        <div class="crit">Résilience au changement climatique</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+
+
+
+
+<div class="section eco">
+  <div class="sectionHeader">
+    <div>
+      <div class="sectionTitle">Économique</div>
+      <div class="sectionHint">Comparaisons par paires</div>
+    </div>
+  </div>
+
+  <div class="sectionBody">
+
+    <!-- Profit vs Dépenses -->
+    <div class="question eco" data-code="Eco_Profit_vs_Depenses"
+         data-a="Profit / recettes fiscales (État)"
+         data-b="Dépenses de l’État">
+      <div class="row">
+        <div class="crit">Profit / recettes fiscales (État)</div>
+        <div class="scale">
+          <label><input type="radio" name="Eco_Profit_vs_Depenses" value="9">9</label>
+          <label><input type="radio" name="Eco_Profit_vs_Depenses" value="7">7</label>
+          <label><input type="radio" name="Eco_Profit_vs_Depenses" value="5">5</label>
+          <label><input type="radio" name="Eco_Profit_vs_Depenses" value="3">3</label>
+          <label><input type="radio" name="Eco_Profit_vs_Depenses" value="1">1</label>
+          <label><input type="radio" name="Eco_Profit_vs_Depenses" value="1/3">3</label>
+          <label><input type="radio" name="Eco_Profit_vs_Depenses" value="1/5">5</label>
+          <label><input type="radio" name="Eco_Profit_vs_Depenses" value="1/7">7</label>
+          <label><input type="radio" name="Eco_Profit_vs_Depenses" value="1/9">9</label>
+        </div>
+        <div class="crit">Dépenses de l’État</div>
+      </div>
+    </div>
+
+    <!-- Profit vs Croissance -->
+    <div class="question eco" data-code="Eco_Profit_vs_Croissance"
+         data-a="Profit / recettes fiscales (État)"
+         data-b="Contribution à la croissance économique">
+      <div class="row">
+        <div class="crit">Profit / recettes fiscales (État)</div>
+        <div class="scale">
+          <label><input type="radio" name="Eco_Profit_vs_Croissance" value="9">9</label>
+          <label><input type="radio" name="Eco_Profit_vs_Croissance" value="7">7</label>
+          <label><input type="radio" name="Eco_Profit_vs_Croissance" value="5">5</label>
+          <label><input type="radio" name="Eco_Profit_vs_Croissance" value="3">3</label>
+          <label><input type="radio" name="Eco_Profit_vs_Croissance" value="1">1</label>
+          <label><input type="radio" name="Eco_Profit_vs_Croissance" value="1/3">3</label>
+          <label><input type="radio" name="Eco_Profit_vs_Croissance" value="1/5">5</label>
+          <label><input type="radio" name="Eco_Profit_vs_Croissance" value="1/7">7</label>
+          <label><input type="radio" name="Eco_Profit_vs_Croissance" value="1/9">9</label>
+        </div>
+        <div class="crit">Contribution à la croissance économique</div>
+      </div>
+    </div>
+
+    <!-- Profit vs Financement -->
+    <div class="question eco" data-code="Eco_Profit_vs_Financement"
+         data-a="Profit / recettes fiscales (État)"
+         data-b="Options de financement">
+      <div class="row">
+        <div class="crit">Profit / recettes fiscales (État)</div>
+        <div class="scale">
+          <label><input type="radio" name="Eco_Profit_vs_Financement" value="9">9</label>
+          <label><input type="radio" name="Eco_Profit_vs_Financement" value="7">7</label>
+          <label><input type="radio" name="Eco_Profit_vs_Financement" value="5">5</label>
+          <label><input type="radio" name="Eco_Profit_vs_Financement" value="3">3</label>
+          <label><input type="radio" name="Eco_Profit_vs_Financement" value="1">1</label>
+          <label><input type="radio" name="Eco_Profit_vs_Financement" value="1/3">3</label>
+          <label><input type="radio" name="Eco_Profit_vs_Financement" value="1/5">5</label>
+          <label><input type="radio" name="Eco_Profit_vs_Financement" value="1/7">7</label>
+          <label><input type="radio" name="Eco_Profit_vs_Financement" value="1/9">9</label>
+        </div>
+        <div class="crit">Options de financement</div>
+      </div>
+    </div>
+
+    <!-- Dépenses vs Croissance -->
+    <div class="question eco" data-code="Eco_Depenses_vs_Croissance"
+         data-a="Dépenses de l’État"
+         data-b="Contribution à la croissance économique">
+      <div class="row">
+        <div class="crit">Dépenses de l’État</div>
+        <div class="scale">
+          <label><input type="radio" name="Eco_Depenses_vs_Croissance" value="9">9</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Croissance" value="7">7</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Croissance" value="5">5</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Croissance" value="3">3</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Croissance" value="1">1</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Croissance" value="1/3">3</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Croissance" value="1/5">5</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Croissance" value="1/7">7</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Croissance" value="1/9">9</label>
+        </div>
+        <div class="crit">Contribution à la croissance économique</div>
+      </div>
+    </div>
+
+    <!-- Dépenses vs Financement -->
+    <div class="question eco" data-code="Eco_Depenses_vs_Financement"
+         data-a="Dépenses de l’État"
+         data-b="Options de financement">
+      <div class="row">
+        <div class="crit">Dépenses de l’État</div>
+        <div class="scale">
+          <label><input type="radio" name="Eco_Depenses_vs_Financement" value="9">9</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Financement" value="7">7</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Financement" value="5">5</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Financement" value="3">3</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Financement" value="1">1</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Financement" value="1/3">3</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Financement" value="1/5">5</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Financement" value="1/7">7</label>
+          <label><input type="radio" name="Eco_Depenses_vs_Financement" value="1/9">9</label>
+        </div>
+        <div class="crit">Options de financement</div>
+      </div>
+    </div>
+
+    <!-- Croissance vs Financement -->
+    <div class="question eco" data-code="Eco_Croissance_vs_Financement"
+         data-a="Contribution à la croissance économique"
+         data-b="Options de financement">
+      <div class="row">
+        <div class="crit">Contribution à la croissance économique</div>
+        <div class="scale">
+          <label><input type="radio" name="Eco_Croissance_vs_Financement" value="9">9</label>
+          <label><input type="radio" name="Eco_Croissance_vs_Financement" value="7">7</label>
+          <label><input type="radio" name="Eco_Croissance_vs_Financement" value="5">5</label>
+          <label><input type="radio" name="Eco_Croissance_vs_Financement" value="3">3</label>
+          <label><input type="radio" name="Eco_Croissance_vs_Financement" value="1">1</label>
+          <label><input type="radio" name="Eco_Croissance_vs_Financement" value="1/3">3</label>
+          <label><input type="radio" name="Eco_Croissance_vs_Financement" value="1/5">5</label>
+          <label><input type="radio" name="Eco_Croissance_vs_Financement" value="1/7">7</label>
+          <label><input type="radio" name="Eco_Croissance_vs_Financement" value="1/9">9</label>
+        </div>
+        <div class="crit">Options de financement</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<div class="section soc">
+  <div class="sectionHeader">
+    <div>
+      <div class="sectionTitle">Social</div>
+      <div class="sectionHint">Comparaisons par paires</div>
+    </div>
+  </div>
+
+  <div class="sectionBody">
+
+    <!-- Acceptabilité vs Justice -->
+    <div class="question soc" data-code="Soc_Acceptabilite_vs_Justice"
+         data-a="Acceptabilité sociale"
+         data-b="Justice sociale">
+      <div class="row">
+        <div class="crit">Acceptabilité sociale</div>
+        <div class="scale">
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Justice" value="9">9</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Justice" value="7">7</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Justice" value="5">5</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Justice" value="3">3</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Justice" value="1">1</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Justice" value="1/3">3</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Justice" value="1/5">5</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Justice" value="1/7">7</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Justice" value="1/9">9</label>
+        </div>
+        <div class="crit">Justice sociale</div>
+      </div>
+    </div>
+
+    <!-- Acceptabilité vs Santé -->
+    <div class="question soc" data-code="Soc_Acceptabilite_vs_Sante"
+         data-a="Acceptabilité sociale"
+         data-b="Santé humaine">
+      <div class="row">
+        <div class="crit">Acceptabilité sociale</div>
+        <div class="scale">
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Sante" value="9">9</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Sante" value="7">7</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Sante" value="5">5</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Sante" value="3">3</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Sante" value="1">1</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Sante" value="1/3">3</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Sante" value="1/5">5</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Sante" value="1/7">7</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Sante" value="1/9">9</label>
+        </div>
+        <div class="crit">Santé humaine</div>
+      </div>
+    </div>
+
+    <!-- Acceptabilité vs Emploi -->
+    <div class="question soc" data-code="Soc_Acceptabilite_vs_Emploi"
+         data-a="Acceptabilité sociale"
+         data-b="Emploi">
+      <div class="row">
+        <div class="crit">Acceptabilité sociale</div>
+        <div class="scale">
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Emploi" value="9">9</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Emploi" value="7">7</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Emploi" value="5">5</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Emploi" value="3">3</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Emploi" value="1">1</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Emploi" value="1/3">3</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Emploi" value="1/5">5</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Emploi" value="1/7">7</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Emploi" value="1/9">9</label>
+        </div>
+        <div class="crit">Emploi</div>
+      </div>
+    </div>
+
+    <!-- Acceptabilité vs Couverture -->
+    <div class="question soc" data-code="Soc_Acceptabilite_vs_Couverture"
+         data-a="Acceptabilité sociale"
+         data-b="Couverture sociale">
+      <div class="row">
+        <div class="crit">Acceptabilité sociale</div>
+        <div class="scale">
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Couverture" value="9">9</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Couverture" value="7">7</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Couverture" value="5">5</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Couverture" value="3">3</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Couverture" value="1">1</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Couverture" value="1/3">3</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Couverture" value="1/5">5</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Couverture" value="1/7">7</label>
+          <label><input type="radio" name="Soc_Acceptabilite_vs_Couverture" value="1/9">9</label>
+        </div>
+        <div class="crit">Couverture sociale</div>
+      </div>
+    </div>
+
+    <!-- Justice vs Santé -->
+    <div class="question soc" data-code="Soc_Justice_vs_Sante"
+         data-a="Justice sociale"
+         data-b="Santé humaine">
+      <div class="row">
+        <div class="crit">Justice sociale</div>
+        <div class="scale">
+          <label><input type="radio" name="Soc_Justice_vs_Sante" value="9">9</label>
+          <label><input type="radio" name="Soc_Justice_vs_Sante" value="7">7</label>
+          <label><input type="radio" name="Soc_Justice_vs_Sante" value="5">5</label>
+          <label><input type="radio" name="Soc_Justice_vs_Sante" value="3">3</label>
+          <label><input type="radio" name="Soc_Justice_vs_Sante" value="1">1</label>
+          <label><input type="radio" name="Soc_Justice_vs_Sante" value="1/3">3</label>
+          <label><input type="radio" name="Soc_Justice_vs_Sante" value="1/5">5</label>
+          <label><input type="radio" name="Soc_Justice_vs_Sante" value="1/7">7</label>
+          <label><input type="radio" name="Soc_Justice_vs_Sante" value="1/9">9</label>
+        </div>
+        <div class="crit">Santé humaine</div>
+      </div>
+    </div>
+
+    <!-- Justice vs Emploi -->
+    <div class="question soc" data-code="Soc_Justice_vs_Emploi"
+         data-a="Justice sociale"
+         data-b="Emploi">
+      <div class="row">
+        <div class="crit">Justice sociale</div>
+        <div class="scale">
+          <label><input type="radio" name="Soc_Justice_vs_Emploi" value="9">9</label>
+          <label><input type="radio" name="Soc_Justice_vs_Emploi" value="7">7</label>
+          <label><input type="radio" name="Soc_Justice_vs_Emploi" value="5">5</label>
+          <label><input type="radio" name="Soc_Justice_vs_Emploi" value="3">3</label>
+          <label><input type="radio" name="Soc_Justice_vs_Emploi" value="1">1</label>
+          <label><input type="radio" name="Soc_Justice_vs_Emploi" value="1/3">3</label>
+          <label><input type="radio" name="Soc_Justice_vs_Emploi" value="1/5">5</label>
+          <label><input type="radio" name="Soc_Justice_vs_Emploi" value="1/7">7</label>
+          <label><input type="radio" name="Soc_Justice_vs_Emploi" value="1/9">9</label>
+        </div>
+        <div class="crit">Emploi</div>
+      </div>
+    </div>
+
+    <!-- Justice vs Couverture -->
+    <div class="question soc" data-code="Soc_Justice_vs_Couverture"
+         data-a="Justice sociale"
+         data-b="Couverture sociale">
+      <div class="row">
+        <div class="crit">Justice sociale</div>
+        <div class="scale">
+          <label><input type="radio" name="Soc_Justice_vs_Couverture" value="9">9</label>
+          <label><input type="radio" name="Soc_Justice_vs_Couverture" value="7">7</label>
+          <label><input type="radio" name="Soc_Justice_vs_Couverture" value="5">5</label>
+          <label><input type="radio" name="Soc_Justice_vs_Couverture" value="3">3</label>
+          <label><input type="radio" name="Soc_Justice_vs_Couverture" value="1">1</label>
+          <label><input type="radio" name="Soc_Justice_vs_Couverture" value="1/3">3</label>
+          <label><input type="radio" name="Soc_Justice_vs_Couverture" value="1/5">5</label>
+          <label><input type="radio" name="Soc_Justice_vs_Couverture" value="1/7">7</label>
+          <label><input type="radio" name="Soc_Justice_vs_Couverture" value="1/9">9</label>
+        </div>
+        <div class="crit">Couverture sociale</div>
+      </div>
+    </div>
+
+    <!-- Santé vs Emploi -->
+    <div class="question soc" data-code="Soc_Sante_vs_Emploi"
+         data-a="Santé humaine"
+         data-b="Emploi">
+      <div class="row">
+        <div class="crit">Santé humaine</div>
+        <div class="scale">
+          <label><input type="radio" name="Soc_Sante_vs_Emploi" value="9">9</label>
+          <label><input type="radio" name="Soc_Sante_vs_Emploi" value="7">7</label>
+          <label><input type="radio" name="Soc_Sante_vs_Emploi" value="5">5</label>
+          <label><input type="radio" name="Soc_Sante_vs_Emploi" value="3">3</label>
+          <label><input type="radio" name="Soc_Sante_vs_Emploi" value="1">1</label>
+          <label><input type="radio" name="Soc_Sante_vs_Emploi" value="1/3">3</label>
+          <label><input type="radio" name="Soc_Sante_vs_Emploi" value="1/5">5</label>
+          <label><input type="radio" name="Soc_Sante_vs_Emploi" value="1/7">7</label>
+          <label><input type="radio" name="Soc_Sante_vs_Emploi" value="1/9">9</label>
+        </div>
+        <div class="crit">Emploi</div>
+      </div>
+    </div>
+
+    <!-- Santé vs Couverture -->
+    <div class="question soc" data-code="Soc_Sante_vs_Couverture"
+         data-a="Santé humaine"
+         data-b="Couverture sociale">
+      <div class="row">
+        <div class="crit">Santé humaine</div>
+        <div class="scale">
+          <label><input type="radio" name="Soc_Sante_vs_Couverture" value="9">9</label>
+          <label><input type="radio" name="Soc_Sante_vs_Couverture" value="7">7</label>
+          <label><input type="radio" name="Soc_Sante_vs_Couverture" value="5">5</label>
+          <label><input type="radio" name="Soc_Sante_vs_Couverture" value="3">3</label>
+          <label><input type="radio" name="Soc_Sante_vs_Couverture" value="1">1</label>
+          <label><input type="radio" name="Soc_Sante_vs_Couverture" value="1/3">3</label>
+          <label><input type="radio" name="Soc_Sante_vs_Couverture" value="1/5">5</label>
+          <label><input type="radio" name="Soc_Sante_vs_Couverture" value="1/7">7</label>
+          <label><input type="radio" name="Soc_Sante_vs_Couverture" value="1/9">9</label>
+        </div>
+        <div class="crit">Couverture sociale</div>
+      </div>
+    </div>
+
+    <!-- Emploi vs Couverture -->
+    <div class="question soc" data-code="Soc_Emploi_vs_Couverture"
+         data-a="Emploi"
+         data-b="Couverture sociale">
+      <div class="row">
+        <div class="crit">Emploi</div>
+        <div class="scale">
+          <label><input type="radio" name="Soc_Emploi_vs_Couverture" value="9">9</label>
+          <label><input type="radio" name="Soc_Emploi_vs_Couverture" value="7">7</label>
+          <label><input type="radio" name="Soc_Emploi_vs_Couverture" value="5">5</label>
+          <label><input type="radio" name="Soc_Emploi_vs_Couverture" value="3">3</label>
+          <label><input type="radio" name="Soc_Emploi_vs_Couverture" value="1">1</label>
+          <label><input type="radio" name="Soc_Emploi_vs_Couverture" value="1/3">3</label>
+          <label><input type="radio" name="Soc_Emploi_vs_Couverture" value="1/5">5</label>
+          <label><input type="radio" name="Soc_Emploi_vs_Couverture" value="1/7">7</label>
+          <label><input type="radio" name="Soc_Emploi_vs_Couverture" value="1/9">9</label>
+        </div>
+        <div class="crit">Couverture sociale</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+<div class="section pol">
+  <div class="sectionHeader">
+    <div>
+      <div class="sectionTitle">Politique</div>
+      <div class="sectionHint">Comparaisons par paires</div>
+    </div>
+  </div>
+
+  <div class="sectionBody">
+
+    <!-- Mise en œuvre vs Acceptabilité politique -->
+    <div class="question pol" data-code="Pol_MiseEnOeuvre_vs_Acceptabilite"
+         data-a="Facilité & possibilités de mise en œuvre"
+         data-b="Acceptabilité politique">
+      <div class="row">
+        <div class="crit">Facilité & possibilités de mise en œuvre</div>
+        <div class="scale">
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Acceptabilite" value="9">9</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Acceptabilite" value="7">7</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Acceptabilite" value="5">5</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Acceptabilite" value="3">3</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Acceptabilite" value="1">1</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Acceptabilite" value="1/3">3</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Acceptabilite" value="1/5">5</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Acceptabilite" value="1/7">7</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Acceptabilite" value="1/9">9</label>
+        </div>
+        <div class="crit">Acceptabilité politique</div>
+      </div>
+    </div>
+
+    <!-- Mise en œuvre vs Externalités -->
+    <div class="question pol" data-code="Pol_MiseEnOeuvre_vs_Externalites"
+         data-a="Facilité & possibilités de mise en œuvre"
+         data-b="Externalités">
+      <div class="row">
+        <div class="crit">Facilité & possibilités de mise en œuvre</div>
+        <div class="scale">
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Externalites" value="9">9</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Externalites" value="7">7</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Externalites" value="5">5</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Externalites" value="3">3</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Externalites" value="1">1</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Externalites" value="1/3">3</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Externalites" value="1/5">5</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Externalites" value="1/7">7</label>
+          <label><input type="radio" name="Pol_MiseEnOeuvre_vs_Externalites" value="1/9">9</label>
+        </div>
+        <div class="crit">Externalités</div>
+      </div>
+    </div>
+
+    <!-- Acceptabilité politique vs Externalités -->
+    <div class="question pol" data-code="Pol_Acceptabilite_vs_Externalites"
+         data-a="Acceptabilité politique"
+         data-b="Externalités">
+      <div class="row">
+        <div class="crit">Acceptabilité politique</div>
+        <div class="scale">
+          <label><input type="radio" name="Pol_Acceptabilite_vs_Externalites" value="9">9</label>
+          <label><input type="radio" name="Pol_Acceptabilite_vs_Externalites" value="7">7</label>
+          <label><input type="radio" name="Pol_Acceptabilite_vs_Externalites" value="5">5</label>
+          <label><input type="radio" name="Pol_Acceptabilite_vs_Externalites" value="3">3</label>
+          <label><input type="radio" name="Pol_Acceptabilite_vs_Externalites" value="1">1</label>
+          <label><input type="radio" name="Pol_Acceptabilite_vs_Externalites" value="1/3">3</label>
+          <label><input type="radio" name="Pol_Acceptabilite_vs_Externalites" value="1/5">5</label>
+          <label><input type="radio" name="Pol_Acceptabilite_vs_Externalites" value="1/7">7</label>
+          <label><input type="radio" name="Pol_Acceptabilite_vs_Externalites" value="1/9">9</label>
+        </div>
+        <div class="crit">Externalités</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+
+<button onclick="envoyerReponses()">Envoyer mes réponses</button>
+<div id="status"></div>
+
+<script>
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAnPeBMy4gZHzygsywtIH4Dz7tonRGZBS0TrQV5gLH1AOv27VL7k385CulapQ2E-jN/exec";
+
+function sanitizeFilename(s) {
+  return (s || "")
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, "_")
+    .replace(/\s+/g, "_");
+}
+
+function reciprocalString(v) {
+  if (!v) return "";
+  if (v === "1") return "1";
+  if (v.includes("/")) return v.split("/")[1]; // "1/5" -> "5"
+  return "1/" + v; // "5" -> "1/5"
+}
+
+async function envoyerReponses() {
+  const status = document.getElementById("status");
+  status.textContent = "";
+
+  const rid = sanitizeFilename(document.getElementById("respondantId").value);
+  if (!rid) {
+    alert("Merci de renseigner l'identifiant répondant avant d'envoyer.");
+    return;
+  }
+
+  const questions = document.querySelectorAll(".question");
+  const answers = [];
+
+  for (let q of questions) {
+  const code = q.dataset.code;
+
+  // 🔍 on cherche le radio coché DANS cette question
+  const checked = q.querySelector("input[type=radio]:checked");
+
+  if (!checked) {
+    // ✅ message ultra précis : te dit quel bloc pose problème
+    alert("Question non répondue détectée : " + code + "\n\n");
+    q.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  const a = q.dataset.a;
+  const b = q.dataset.b;
+
+  const v = checked.value;
+  const valA = v;
+  const valB = reciprocalString(v);
+
+  answers.push({ code, a, b, valA, valB });
+}
+
+
+  const payload = { respondantId: rid, answers };
+
+  status.textContent = "Envoi en cours...";
+
+  // ✅ Envoi via formulaire (pas de CORS, marche depuis file://)
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = GOOGLE_SCRIPT_URL;
+  form.target = "hidden_iframe";
+
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = "payload";
+  input.value = JSON.stringify(payload);
+  form.appendChild(input);
+
+  // iframe cachée pour ne pas quitter la page
+  let iframe = document.getElementById("hidden_iframe");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe";
+    iframe.id = "hidden_iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+  form.remove();
+
+  status.textContent = "✅ Merci ! Réponse envoyée.";
+}
+
+
+</script>
+
+</div>
+
+</body>
+</html>
